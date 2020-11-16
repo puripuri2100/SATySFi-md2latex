@@ -1,0 +1,23 @@
+;; For Satyrographos 0.0.2 series
+(version 0.0.2)
+
+;; Library declaration
+(library
+  ;; Library name
+  (name "md2latex")
+  ;; Library version
+  (version "0.0.1")
+  ;; Files
+  (sources
+    (
+      (packageDir "src/packages")
+      (file "md/md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
+    ))
+  ;; OPAM package file
+  (opam "satysfi-md2latex.opam")
+  ;; Dependency
+  (dependencies
+    (
+      (dist ())
+      (make-latex ())
+    )))

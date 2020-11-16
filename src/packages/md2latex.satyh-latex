@@ -1,0 +1,331 @@
+@require: list
+@require: option
+@require: make-latex/latex-base
+@require: make-latex/code
+@require: make-latex/url
+
+
+type config =
+  (|
+    title : inline-text;
+    author : inline-text;
+    date : inline-text;
+    show-toc : bool;
+    show-title : bool;
+    latex : latex-type;
+    dviware-opt : dviware-type option;
+    options : string list;
+    preamble : string list;
+  |)
+
+module MD2LaTeX : sig
+
+  val default-config : config
+
+  val document : config -> block-text -> string
+
+  direct +section : [inline-text; block-text] block-cmd
+  direct +subsection : [inline-text; block-text] block-cmd
+  direct +subsubsection : [inline-text; block-text] block-cmd
+  direct +p : [inline-text] block-cmd
+  direct +error : [string] block-cmd
+  direct \error : [string] inline-cmd
+  direct +quote : [block-text] block-cmd
+  direct \emph : [inline-text] inline-cmd
+  direct \bold : [inline-text] inline-cmd
+  direct \img : [string; string; string] inline-cmd
+  direct \reference : [string; string; (string * string) option] inline-cmd
+  direct \embed-block : [block-text] inline-cmd
+  direct +ul : [inline-text list] block-cmd
+  direct +ol : [inline-text list] block-cmd
+  direct +ul-block : [block-text list] block-cmd
+  direct +ol-block : [block-text list] block-cmd
+  direct +hr : [] block-cmd
+
+end = struct
+
+
+let default-config =
+(|
+    title = {};
+    author = {};
+    date = {};
+    show-toc = false;
+    show-title = true;
+    latex = LuaLaTeX;
+    dviware-opt = None;
+    options = [];
+    preamble = [];
+  |)
+
+
+let lf = string-unexplode [0x0A]
+
+let concat = List.fold-left (^) ` `
+
+let concat-lf =
+  List.fold-left (fun s1 s2 -> s1 ^ lf^ s2) ` `
+
+
+let document r bt =
+
+
+  let latex-type = r#latex in
+  let dviware-type-opt = r#dviware-opt in
+
+  let latex-dviware-str =
+    match (latex-type, dviware-type-opt) with
+    | (LuaLaTeX, _) -> `lualatex,`
+    | (PDFLaTeX, _) -> `pdflatex`
+    | (XeLaTeX, _) -> `xelatex`
+    | (PLaTeX, None) -> `platex,dvipdfmx`
+    | (PLaTeX, Some(d)) -> (
+      match d with
+      | DVIPDFMX -> `platex,dvipdfmx`
+      | DVIPS -> `platex,dvips`
+      | XDVIPDFMX -> `platex,dvipdfmx`
+    )
+    | (UPLaTeX, None) -> `uplatex,dvipdfmx`
+    | (UPLaTeX, Some(d)) -> (
+      match d with
+      | DVIPDFMX -> `uplatex,dvipdfmx`
+      | DVIPS -> `uplatex,dvips`
+      | XDVIPDFMX -> `uplatex,dvipdfmx`
+    )
+  in
+
+
+  let dviware-str-opt =
+    match (latex-type, dviware-type-opt) with
+    | (LuaLaTeX, _) -> None
+    | (PDFLaTeX, _) -> None
+    | (XeLaTeX, _) -> None
+    | (PLaTeX, None) -> Some(`dvipdfmx`)
+    | (PLaTeX, Some(d)) -> (
+      match d with
+      | DVIPDFMX -> Some(`dvipdfmx`)
+      | DVIPS -> Some(`dvips`)
+      | XDVIPDFMX -> Some(`dvipdfmx`)
+    )
+    | (UPLaTeX, None) -> Some(`dvipdfmx`)
+    | (UPLaTeX, Some(d)) -> (
+      match d with
+      | DVIPDFMX -> Some(`dvipdfmx`)
+      | DVIPS -> Some(`dvips`)
+      | XDVIPDFMX -> Some(`dvipdfmx`)
+    )
+  in
+
+
+  let tinfo = get-initial-text-info () in
+
+  let default-options =
+    latex-dviware-str^`ja=standard`
+  in
+
+  let options =
+    let bbs =
+      r#options |> List.map(fun st -> st ^ `,`)
+    in
+  List.fold-left ( ^ ) default-options bbs
+  in
+
+  let preambles = List.fold-left ( ^ ) ` ` r#preamble in
+
+
+  let default-packages =
+    let graphicx =
+      match dviware-str-opt with
+      | None -> `\usepackage{graphicx}`
+      | Some(d) -> `\usepackage[`^d^`]{graphicx}`
+    in
+    let xcolor =
+      match dviware-str-opt with
+      | None -> `\usepackage{xcolor}`
+      | Some(d) -> `\usepackage[`^d^`]{xcolor}`
+    in
+    concat-lf [graphicx;xcolor;lf]
+  in
+
+  let packages =
+    let bbs =
+      LaTeXBase.get-latex-packages-list latex-type dviware-type-opt
+      |> List.map (fun st -> st ^ (break tinfo))
+    in
+  List.fold-left ( ^ ) default-packages bbs
+  in
+
+  let maketitle = if r#show-title then `\maketitle` ^ (break tinfo)
+    else ` `
+  in
+
+  let toc = if r#show-toc then `\tableofcontents` ^ (break tinfo)
+    else ` `
+  in
+
+  concat[
+    `\documentclass[` ^ options ^ `]{bxjsarticle}` ^ (break tinfo);
+
+      packages ^ (break tinfo);
+
+      preambles ^ (break tinfo);
+
+      `\title{` ^ stringify-inline tinfo r#title ^ `}` ^ (break tinfo);
+      `\author{` ^ stringify-inline tinfo r#author ^ `}` ^ (break tinfo);
+      `\date{` ^ stringify-inline tinfo r#date ^ `}` ^ (break tinfo);
+
+    `\begin{document}` ^ (break tinfo);
+
+      maketitle;
+      toc;
+
+      stringify-block tinfo bt ^ (break tinfo);
+
+    `\end{document}` ^ (break tinfo);
+  ]
+
+
+
+let-block tinfo +section title main =
+  let s-title = `\section{` ^ stringify-inline tinfo title ^ `}` in
+  let s-main = stringify-block tinfo main in
+    (break tinfo) ^ s-title ^ (break tinfo) ^ s-main
+
+
+let-block tinfo +subsection title main =
+  let s-title = `\subsection{` ^ stringify-inline tinfo title ^ `}` in
+  let s-main = stringify-block tinfo main in
+    (break tinfo) ^ s-title ^ (break tinfo) ^ s-main
+
+
+let-block tinfo +subsubsection title main =
+  let s-title = `\subsubsection{` ^ stringify-inline tinfo title ^ `}` in
+  let s-main = stringify-block tinfo main in
+    (break tinfo) ^ s-title ^ (break tinfo) ^ s-main
+
+
+let-block tinfo +p it =
+  concat[
+    (break tinfo);
+    stringify-inline tinfo it;
+    (break tinfo);
+    (break tinfo);
+  ]
+
+
+let-block tinfo +error s =
+  let it = embed-string s in
+  ```\textcolor{red}{ERROR (B): `` ``` ^ s ^ ` ''} `
+
+
+let-inline tinfo \error s =
+  let it = embed-string s in
+  ```\textcolor{red}{ERROR (I): `` ``` ^ s ^ ` ''} `
+
+
+let-block tinfo +quote bt =
+  concat[
+    `\begin{quotation}`^(break tinfo);
+    stringify-block tinfo bt ^(break tinfo);
+    `\end{quotation}`^(break tinfo);
+  ]
+
+
+let-inline tinfo \emph it =
+  `\emph{`^stringify-inline tinfo it^`}`
+
+
+let-inline tinfo \bold it =
+  `\textbf{\textgt{`^stringify-inline tinfo it^`}}`
+
+
+let-inline tinfo \img alt src title =
+  concat[
+    `\begin{figure}`^(break tinfo);
+    `\centering`^(break tinfo);
+    `\includegraphics[width=\textwidth]{`^src^`}`^(break tinfo);
+    `\caption{`^alt^`}`^(break tinfo);
+    `\end{figure}`^(break tinfo);
+  ]
+
+
+% メッセージはmdjaに揃える
+let-inline tinfo \reference tag display opt =
+  match opt with
+  | None -> (
+      let () = display-message (`no reference for tag '` ^ tag ^ `'.`) in
+      display
+    )
+  | Some((url, title)) -> (
+      let () = display-message (`tag = '` ^ tag ^ `'`) in
+      let () = display-message (`display = '` ^ display ^ `'`) in
+      let () = display-message (`title = '` ^ title ^ `'`) in
+      let () = display-message (`url = '` ^ url ^ `'`) in
+      let it = embed-string display in
+      stringify-inline tinfo {#it;[\href(url)(embed-string title);]}
+    )
+
+
+let-inline tinfo \embed-block bt =
+  stringify-block tinfo bt
+
+
+
+let-block tinfo +ul it-lst =
+  concat [
+    `\begin{itemize}`^(break tinfo);
+    (
+      it-lst
+      |> List.map (fun it -> `\item `# ^ stringify-inline tinfo it)
+      |> concat-lf
+    );
+    `\end{itemize}`^(break tinfo);
+  ]
+
+
+let-block tinfo +ol it-lst =
+  concat [
+    `\begin{enumerate}`^(break tinfo);
+    (
+      it-lst
+      |> List.map (fun it -> `\item `# ^ stringify-inline tinfo it)
+      |> concat-lf
+    );
+    `\end{enumerate}`^(break tinfo);
+  ]
+
+
+
+let-block tinfo +ul-block bt-lst =
+  concat [
+    `\begin{itemize}`^(break tinfo);
+    (
+      bt-lst
+      |> List.map (fun bt -> `\item `# ^ stringify-block tinfo bt)
+      |> concat-lf
+    );
+    `\end{itemize}`^(break tinfo);
+  ]
+
+
+let-block tinfo +ol-block bt-lst =
+  concat [
+    `\begin{enumerate}`^(break tinfo);
+    (
+      bt-lst
+      |> List.map (fun bt -> `\item `# ^ stringify-block tinfo bt)
+      |> concat-lf
+    );
+    `\end{enumerate}`^(break tinfo);
+  ]
+
+
+
+let-block tinfo +hr =
+  concat[
+    (break tinfo);
+    `\rule{\textwidth}{0.5pt}`^(break tinfo);
+    (break tinfo);
+  ]
+
+end

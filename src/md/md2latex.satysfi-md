@@ -1,0 +1,33 @@
+{
+  "depends": ["list","option","md2latex/md2latex","make-latex/latex-base","make-latex/code","make-latex/url"],
+  "document": "MD2LaTeX.document",
+  "header-default": "MD2LaTeX.default-config",
+  "paragraph": "+p",
+  "h1": "+section",
+  "h2": "+subsection",
+  "h3": "+subsubsection",
+  "h4": "+subsubsection",
+  "h5": "+subsubsection",
+  "h6": "+subsubsection",
+  "hr": "+hr",
+  "ul-inline": "+ul",
+  "ul-block": "+ul-block",
+  "ol-inline": "+ol",
+  "ol-block": "+ol-block",
+  "code-block": [
+  ],
+  "code-block-default": "+code",
+  "blockquote": "+quote",
+  "err-block": "+error",
+  "emph": "\\emph",
+  "bold": "\\bold",
+  "hard-break": <None>,
+  "code": [
+  ],
+  "code-default": "\\code",
+  "url": "\\href",
+  "reference": "\\reference",
+  "img": "\\img",
+  "embed-block": "\\embed-block",
+  "err-inline": "\\error"
+}
