@@ -12,6 +12,7 @@
     (
       (packageDir "src/packages")
       (file "md/md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
+      ;;(md "md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
     ))
   ;; OPAM package file
   (opam "satysfi-md2latex.opam")
@@ -20,4 +21,28 @@
     (
       (dist ())
       (make-latex ())
+    )))
+
+
+;; Library doc declaration
+(libraryDoc
+  ;; Library doc name
+  (name "md2latex-doc")
+  ;; Library version
+  (version "0.0.1")
+  ;; Working directory to build docs
+  (workingDirectory "doc")
+  ;; Build commands
+  (build
+    ;; Run SATySFi
+    ((satysfi "manual-ja.saty" "-o" "manual-ja.pdf")))
+  ;; Files
+  (sources
+    ((doc "manual-ja.pdf" "doc/manual-ja.pdf")))
+  ;; OPAM package file
+  (opam "satysfi-md2latex-doc.opam")
+  ;; Dependency
+  (dependencies
+    ((md2latex ()) ; the main library
+     (dist ()) ; Standard library
     )))

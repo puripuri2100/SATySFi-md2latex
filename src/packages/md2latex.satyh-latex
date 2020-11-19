@@ -46,7 +46,7 @@ end = struct
 
 
 let default-config =
-(|
+  (|
     title = {};
     author = {};
     date = {};

@@ -1,0 +1,85 @@
+@require: stdjabook
+@require: itemize
+@require: code
+
+document (|
+  title = {md2latexライブラリ};
+  author = {Naoki Kaneko};
+  show-title = true;
+  show-toc = false;
+|) '<
+  +section {このライブラリの提供するものと使い方}<
+    +p{このパッケージは\SATySFi;のテキストモードとmd入力モードを用いて、markdownファイルを\LaTeX;ファイルに変換するライブラリです。}
+    +p{インストールされるファイルは\code(`md2latex.satysfi-md`);と\code(`md2latex.satyh-latex`);です。どちらも\code(`md2latex`);というフォルダ内に配置されます。}
+    +p{起動は
+      \d-code(```
+  satysfi --markdown "md2latex/md2latex" --text-mode "tex,latex" <file name>.md -o <file name>.tex
+      ```);
+      で行います。
+      テキストモードでは必ず\code(`tex,latex`);を指定してください。
+      また、md入力モードでは\code(`md2latex/md2latex`);を指定するようにしてください。
+    }
+  >
+
+  +section {設定} <
+    +p{出力されるファイルは標準ではLua\LaTeX;を使うようになっていますが、ヘッダーで変更することができます。}
+    +p{その他にもタイトルや目次の表示の有無、読み込むパッケージの追加やクラスファイルへのオプションの追加などができるようになっています。}
+    +p{変更はレコードの\code(`with`);構文を用いて行います。
+    デフォルト値は\code(`MD2LaTeX.default-config`);です。
+    現時点でのフィールド名と型名、デフォルト値はこのようになっています。}
+    +p{型名
+    \d-code(```
+  (|
+    title : inline-text;
+    author : inline-text;
+    date : inline-text;
+    show-toc : bool;
+    show-title : bool;
+    latex : latex-type;
+    dviware-opt : dviware-type option;
+    options : string list;
+    preamble : string list;
+  |)
+    ```);
+    }
+    +p{デフォルト値
+    \d-code(```
+  (|
+    title = {};
+    author = {};
+    date = {};
+    show-toc = false;
+    show-title = true;
+    latex = LuaLaTeX;
+    dviware-opt = None;
+    options = [];
+    preamble = [];
+  |)
+    ```);
+    となっています。}
+    +p{値の変更方法は、例えばエンジンとdviwareを変更する場合は、ファイル頭に
+    \d-code(```
+<!-- (|
+  MD2LaTeX.default-config with
+  latex = LaTeXBase.uplatex;
+  dviware-opt = Some(LaTeXBase.dvipdfmx);
+|) -->
+    ```);
+    となります。}
+
+    +p{出力される\LaTeX;ファイルはbxjsarticleクラスを使うようになっています。
+    現状、これを変更する方法はありません。forkして書き換えて使ってください。}
+    +p{デフォルトで読み込む\LaTeX;パッケージは
+      \listing{
+        * graphicx
+        * xcolor
+        * hyperref
+        * listings
+      }
+      です。
+    }
+    +p{\SATySFi;のmd入力モードが対応しているmarkdownの記法にはほとんど対応しているはずです。
+    詳しくはmd2latex.satysfi-mdファイルを見てください。}
+  >
+>
+

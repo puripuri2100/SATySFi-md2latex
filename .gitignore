@@ -1,2 +1,5 @@
 test
 .satysfi
+
+*.satysfi-aux
+*.pdf
