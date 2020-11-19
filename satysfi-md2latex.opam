@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "satysfi-md2latex"
-version: "0.0.1"
+version: "0.0.2"
 synopsis: "Convert Markdown to LaTeX with SATySFi"
 description: """
 Convert Markdown to LaTeX with SATySFi.

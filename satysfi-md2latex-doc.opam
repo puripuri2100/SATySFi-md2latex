@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "satysfi-md2latex-doc"
-version: "0.0.1"
+version: "0.0.2"
 synopsis: "Document of md2latex Package"
 description: """
 Document of md2latex Package.
