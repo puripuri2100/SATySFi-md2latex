@@ -11,7 +11,7 @@
   (sources
     (
       (packageDir "src/packages")
-      (file "md/md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
+      (file "md/md2latex/md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
       ;;(md "md2latex.satysfi-md" "src/md/md2latex.satysfi-md")
     ))
   ;; OPAM package file
