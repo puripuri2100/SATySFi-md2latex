@@ -6,7 +6,7 @@
   ;; Library name
   (name "md2latex")
   ;; Library version
-  (version "0.0.2")
+  (version "0.0.3")
   ;; Files
   (sources
     (
@@ -29,7 +29,7 @@
   ;; Library doc name
   (name "md2latex-doc")
   ;; Library version
-  (version "0.0.2")
+  (version "0.0.3")
   ;; Working directory to build docs
   (workingDirectory "doc")
   ;; Build commands
